@@ -80,6 +80,7 @@
   flex-direction: column;
   gap: 8px;
   padding: 0 16px;
+  flex: 1;
 }
 
 .nav-link {
@@ -143,10 +144,16 @@
     position: fixed;
     top: 76px;
     left: 0;
+    width: 100vw;
     height: calc(100vh - 76px);
     z-index: 99;
     transform: translateX(-100%);
     box-shadow: var(--shadow-lg);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--white);
+    padding-bottom: 24px;
   }
 
   .sidebar.open {
@@ -159,7 +166,7 @@
 
   .mobile-only {
     display: block;
-    padding: 0 20px 24px;
+    padding: 20px 20px 24px;
     border-bottom: 1px solid #EAEDED;
     margin-bottom: 24px;
   }
@@ -169,15 +176,7 @@
   }
 
   .sidebar-overlay {
-    position: fixed;
-    top: 76px;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(28, 40, 51, 0.4);
-    backdrop-filter: blur(2px);
-    z-index: 98;
-    animation: fadeIn 0.3s ease-out;
+    display: none;
   }
 }
 
