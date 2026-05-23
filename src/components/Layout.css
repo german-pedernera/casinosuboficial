@@ -1,0 +1,222 @@
+.layout-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.navbar {
+  height: 76px;
+  background-color: var(--white);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.circle-logo-small {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background-color: var(--light-green);
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%23145A32" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>');
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.navbar-title {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700;
+  color: var(--primary-green);
+  font-size: 1.25rem;
+  letter-spacing: -0.02em;
+}
+
+.navbar-user {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.user-info {
+  font-size: 0.95rem;
+  color: var(--text-dark);
+}
+
+.menu-toggle {
+  background: none;
+  padding: 8px;
+  color: var(--text-dark);
+}
+
+.main-layout {
+  display: flex;
+  flex: 1;
+  position: relative;
+}
+
+.sidebar {
+  width: 310px;
+  background-color: var(--white);
+  border-right: 1px solid #EAEDED;
+  padding: 32px 0;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nav-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 16px;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 20px;
+  border-radius: var(--radius-sm);
+  color: var(--text-light);
+  text-decoration: none;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 600;
+  transition: var(--transition);
+  background: transparent;
+  border: none;
+  border-left: 4px solid transparent;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+  width: 100%;
+}
+
+.nav-link:hover {
+  background-color: #F8F9F9;
+  color: var(--primary-green);
+}
+
+.nav-link.active {
+  background-color: var(--light-green);
+  color: var(--primary-green);
+  border-left: 4px solid var(--secondary-green);
+}
+
+.btn-logout {
+  color: var(--danger);
+}
+
+.btn-logout:hover {
+  background-color: var(--danger-light);
+  color: var(--danger);
+}
+
+.content {
+  flex: 1;
+  padding: 40px;
+  background-color: var(--bg-color);
+  overflow-y: auto;
+}
+
+.mobile-only {
+  display: none;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .navbar {
+    padding: 0 20px;
+  }
+  
+  .sidebar {
+    position: fixed;
+    top: 76px;
+    left: 0;
+    height: calc(100vh - 76px);
+    z-index: 99;
+    transform: translateX(-100%);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .d-none-mobile {
+    display: none;
+  }
+
+  .mobile-only {
+    display: block;
+    padding: 0 20px 24px;
+    border-bottom: 1px solid #EAEDED;
+    margin-bottom: 24px;
+  }
+
+  .content {
+    padding: 24px 16px;
+  }
+
+  .sidebar-overlay {
+    position: fixed;
+    top: 76px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(28, 40, 51, 0.4);
+    backdrop-filter: blur(2px);
+    z-index: 98;
+    animation: fadeIn 0.3s ease-out;
+  }
+}
+
+@media (min-width: 769px) {
+  .menu-toggle {
+    display: none;
+  }
+}
+
+.layout-enter {
+  animation: flipIn 1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  transform-style: preserve-3d;
+  perspective: 1500px;
+}
+
+@keyframes flipIn {
+  0% {
+    opacity: 0;
+    transform: perspective(1500px) rotateY(90deg);
+  }
+  100% {
+    opacity: 1;
+    transform: perspective(1500px) rotateY(0deg);
+  }
+}
+
+.layout-exit {
+  animation: flipOut 1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  transform-style: preserve-3d;
+  perspective: 1500px;
+}
+
+@keyframes flipOut {
+  0% {
+    opacity: 1;
+    transform: perspective(1500px) rotateY(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: perspective(1500px) rotateY(-90deg);
+  }
+}

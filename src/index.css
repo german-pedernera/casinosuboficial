@@ -1,0 +1,194 @@
+:root {
+  /* Paleta Verde Curada */
+  --primary-green: #145A32;
+  --secondary-green: #229954;
+  --light-green: #E8F8F5;
+  --accent-green: #D4EFDF;
+  
+  /* Grises y Texto */
+  --text-dark: #1C2833;
+  --text-light: #566573;
+  --bg-color: #F8F9F9;
+  --white: #FFFFFF;
+  --danger: #E74C3C;
+  --danger-light: #FDEDEC;
+
+  /* Elevaciones (Sombras) */
+  --shadow-sm: 0 4px 6px rgba(20, 90, 50, 0.04);
+  --shadow-md: 0 10px 20px rgba(20, 90, 50, 0.08);
+  --shadow-lg: 0 20px 40px rgba(20, 90, 50, 0.12);
+  
+  /* Bordes */
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-full: 9999px;
+  
+  /* Transiciones */
+  --transition: none;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-dark);
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.5;
+}
+
+/* Typography Modernizada */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700;
+  color: var(--primary-green);
+  letter-spacing: -0.02em;
+}
+
+/* Animaciones Fluidas */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slowFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Inputs de Alta Calidad */
+input, textarea, select {
+  width: 100%;
+  padding: 14px 20px;
+  border: 2px solid transparent;
+  background-color: #F2F4F4;
+  border-radius: var(--radius-sm);
+  font-size: 1rem;
+  font-family: 'Inter', sans-serif;
+  color: var(--text-dark);
+  transition: var(--transition);
+  outline: none;
+}
+
+input::placeholder, textarea::placeholder {
+  color: #AAB7B8;
+}
+
+input:focus, textarea:focus, select:focus {
+  background-color: var(--white);
+  border-color: var(--secondary-green);
+  box-shadow: 0 0 0 4px rgba(34, 153, 84, 0.15);
+}
+
+/* Botones con Micro-animaciones */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 28px;
+  border-radius: var(--radius-full);
+  font-family: 'Outfit', sans-serif;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: var(--transition);
+  border: none;
+  gap: 8px;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--secondary-green) 0%, var(--primary-green) 100%);
+  color: var(--white);
+  box-shadow: 0 4px 12px rgba(20, 90, 50, 0.2);
+}
+
+.btn-primary:hover {
+  box-shadow: 0 8px 20px rgba(20, 90, 50, 0.3);
+}
+
+.btn-primary:active {
+}
+
+.btn-danger {
+  background-color: var(--white);
+  color: var(--danger);
+  border: 1px solid var(--danger-light);
+}
+
+.btn-danger:hover {
+  background-color: var(--danger);
+  color: var(--white);
+  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.2);
+}
+
+/* Tarjetas (Glassmorphism sutil) */
+.card {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+/* Tablas Modernas */
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+thead th {
+  font-family: 'Outfit', sans-serif;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+  color: var(--text-light);
+  padding: 16px;
+  border-bottom: 2px solid var(--light-green);
+}
+
+tbody tr {
+  transition: var(--transition);
+}
+
+tbody tr:hover {
+  background-color: var(--light-green);
+}
+
+tbody td {
+  padding: 16px;
+  border-bottom: 1px solid #EAEDED;
+  color: var(--text-dark);
+}
+
+/* Utilities */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.text-center { text-align: center; }
+.text-light { color: var(--text-light); }
+.mt-4 { margin-top: 1.5rem; }
+.mb-4 { margin-bottom: 1.5rem; }
+.d-flex { display: flex; }
+.flex-column { flex-direction: column; }
+.align-items-center { align-items: center; }
+.justify-content-center { justify-content: center; }
+.justify-content-between { justify-content: space-between; }
+.gap-2 { gap: 0.5rem; }
+.gap-3 { gap: 1rem; }
+.gap-4 { gap: 1.5rem; }
+.position-relative { position: relative; }
+.position-absolute { position: absolute; }
