@@ -92,7 +92,7 @@ const DocumentacionGastos = ({ isAdmin }) => {
       {isAdmin && (
         <form onSubmit={handleUpload} className="card mb-4" style={{ backgroundColor: 'var(--light-green)' }}>
           <h4 className="mb-4">Subir Nuevo Documento</h4>
-          <div className="d-flex gap-4 align-items-center" style={{ flexWrap: 'wrap' }}>
+          <div className="d-flex gap-4 align-items-center flex-column-mobile" style={{ flexWrap: 'wrap' }}>
             <input 
               type="text" 
               placeholder="Título descriptivo del documento" 
@@ -106,8 +106,9 @@ const DocumentacionGastos = ({ isAdmin }) => {
               accept=".pdf"
               onChange={(e) => setFile(e.target.files[0])} 
               required 
+              style={{ minWidth: '0' }}
             />
-            <button type="submit" className="btn btn-primary d-flex gap-2" disabled={uploading}>
+            <button type="submit" className="btn btn-primary d-flex gap-2 btn-mobile-full" disabled={uploading}>
               {uploading ? 'Subiendo...' : <><Upload size={18} /> Subir PDF</>}
             </button>
           </div>

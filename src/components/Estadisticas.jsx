@@ -133,27 +133,27 @@ const Estadisticas = ({ isAdmin = false }) => {
 
       <div className="row g-4">
         {/* Gráfico de Balance */}
-        <div className="col-md-7">
+        <div className="col-12 col-md-7">
           <div className="card h-100 mb-4" style={{ backgroundColor: '#fff' }}>
-            <div className="d-flex align-items-center gap-2 mb-4">
+            <div className="d-flex align-items-center gap-2 mb-4" style={{ flexWrap: 'wrap' }}>
               <TrendingUp size={20} color="var(--primary-green)" />
-              <h4 className="m-0 text-dark">Evolución de Balance (Ingresos vs Egresos)</h4>
+              <h4 className="m-0 text-dark" style={{ fontSize: 'clamp(0.85rem, 2.5vw, 1.1rem)' }}>Evolución de Balance (Ingresos vs Egresos)</h4>
             </div>
             {pieData.length === 0 ? (
               <p className="text-muted text-center mt-5">No hay datos de balance para mostrar.</p>
             ) : (
-              <div style={{ height: 300 }}>
+              <div style={{ height: 280 }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
                       data={pieData}
                       cx="50%"
                       cy="50%"
-                      labelLine={true}
-                      outerRadius={100}
+                      labelLine={false}
+                      outerRadius="40%"
                       fill="#8884d8"
                       dataKey="value"
-                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
                     >
                       {pieData.map((entry, index) => {
                         let color = '#0d6efd';
@@ -172,7 +172,7 @@ const Estadisticas = ({ isAdmin = false }) => {
         </div>
 
         {/* Gráfico de Torta - Ingresos Mensuales */}
-        <div className="col-md-5">
+        <div className="col-12 col-md-5">
           <div className="card h-100 mb-4" style={{ backgroundColor: '#fff' }}>
             <div className="d-flex align-items-center gap-2 mb-4">
               <DollarSign size={20} color="var(--primary-green)" />

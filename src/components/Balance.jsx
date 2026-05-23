@@ -164,7 +164,7 @@ const Balance = ({ isAdmin }) => {
 
   return (
     <div className="card">
-      <div className="d-flex justify-content-between align-items-center mb-4">
+      <div className="d-flex justify-content-between align-items-center mb-4" style={{ flexWrap: 'wrap', gap: '12px' }}>
         <h3>Balance Ingreso / Egreso</h3>
         <button onClick={handleDownloadPDF} className="btn btn-primary d-flex gap-2">
           <Download size={18} /> Descargar PDF
@@ -217,7 +217,7 @@ const Balance = ({ isAdmin }) => {
       {loading ? (
         <p>Cargando datos...</p>
       ) : (
-        <div style={{ overflowX: 'auto' }}>
+        <div className="table-responsive">
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
             <thead>
               <tr style={{ borderBottom: '2px solid var(--primary-green)' }}>

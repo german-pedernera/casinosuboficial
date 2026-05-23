@@ -144,7 +144,7 @@ const PanelPrincipal = ({ user }) => {
               {propuesta.length}/250 caracteres
             </div>
           </div>
-          <div className="d-flex gap-4">
+          <div className="d-flex gap-4 flex-column-mobile">
             <input
               type="text"
               placeholder="Ingrese su MI"
@@ -163,7 +163,7 @@ const PanelPrincipal = ({ user }) => {
             />
           </div>
           {mensaje && <p className={mensaje.includes('error') ? 'text-danger' : 'text-success'} style={{color: mensaje.includes('error') ? 'var(--danger)' : 'var(--primary-green)'}}>{mensaje}</p>}
-          <button type="submit" className="btn btn-primary" style={{alignSelf: 'flex-start'}}>
+          <button type="submit" className="btn btn-primary btn-mobile-full" style={{alignSelf: 'flex-start'}}>
             Enviar Propuesta
           </button>
         </form>
