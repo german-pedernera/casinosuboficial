@@ -3,7 +3,31 @@ import { supabase } from '../supabase';
 import { useModal } from '../context/ModalContext';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { Download, Trash2, Edit2, Save, X, Search } from 'lucide-react';
+import { Download, Trash2, Edit2, Save, X, Search, RotateCcw } from 'lucide-react';
+
+const getRankWeight = (jerarquia) => {
+  const ranks = {
+    "Comandante General": 1,
+    "Comandante Mayor": 2,
+    "Comandante Principal": 3,
+    "Comandante": 4,
+    "Segundo Comandante": 5,
+    "Primer Alférez": 6,
+    "Alférez": 7,
+    "Subalférez": 8,
+    "Suboficial Mayor": 9,
+    "Oficial Mayor": 9,
+    "Suboficial Principal": 10,
+    "Oficial Principal": 10,
+    "Sargento Ayudante": 11,
+    "Sargento Primero": 12,
+    "Sargento": 13,
+    "Cabo Primero": 14,
+    "Cabo": 15,
+    "Gendarme": 16
+  };
+  return ranks[jerarquia] || 99;
+};
 
 const MESES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
 
@@ -11,19 +35,22 @@ const PlanillaMensual = ({ isAdmin }) => {
   const [filas, setFilas] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const [editingId, setEditingId] = useState(null);
-  const [editData, setEditData] = useState({});
+  const [isGlobalEdit, setIsGlobalEdit] = useState(false);
+  const [editingData, setEditingData] = useState({});
   const [searchTerm, setSearchTerm] = useState('');
   const { showModal } = useModal();
 
   const JERARQUIAS = [
-    "Suboficial Mayor", "Suboficial Principal", "Sargento Ayudante", 
+    "Oficial Mayor", "Oficial Principal", "Sargento Ayudante", 
     "Sargento Primero", "Sargento", "Cabo Primero", "Cabo", "Gendarme"
   ];
 
   const fetchPlanilla = async () => {
     try {
-      const { data, error } = await supabase.from('planilla_mensual').select('*');
+      const { data, error } = await supabase
+        .from('planilla_mensual')
+        .select('*')
+        .order('id', { ascending: true });
       if (error) throw error;
       setFilas(data);
       setLoading(false);
@@ -36,7 +63,11 @@ const PlanillaMensual = ({ isAdmin }) => {
   const filasFiltradas = filas.filter(fila => 
     (fila.socio || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
     (fila.jerarquia || '').toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  ).sort((a, b) => {
+    const rankDiff = getRankWeight(a.jerarquia) - getRankWeight(b.jerarquia);
+    if (rankDiff !== 0) return rankDiff;
+    return a.id - b.id;
+  });
 
   const calcularTotalFila = (fila) => {
     return MESES.reduce((acc, mes) => acc + (parseFloat(fila[mes]) || 0), 0);
@@ -48,6 +79,11 @@ const PlanillaMensual = ({ isAdmin }) => {
 
   const calcularTotalGeneral = () => {
     return filasFiltradas.reduce((acc, fila) => acc + calcularTotalFila(fila), 0);
+  };
+
+  const formatCurrency = (amount) => {
+    if (amount === null || amount === undefined || amount === '') return '-';
+    return '$' + Number(amount).toLocaleString('es-AR');
   };
 
   useEffect(() => {
@@ -81,54 +117,119 @@ const PlanillaMensual = ({ isAdmin }) => {
     }
   };
 
-  const handleEditClick = (fila) => {
-    setEditingId(fila.id);
-    setEditData({ jerarquia: fila.jerarquia || '', socio: fila.socio });
-  };
+  const handleReiniciarPlanilla = async () => {
+    const isConfirmed = await showModal({ 
+      type: 'confirm', 
+      title: 'Reiniciar Planilla a Cero', 
+      message: '¿Está seguro que desea reiniciar a cero todos los pagos de la planilla mensual? Esta acción no se puede deshacer.' 
+    });
 
-  const handleSaveEdit = async (id) => {
-    try {
-      const { error } = await supabase.from('planilla_mensual').update(editData).eq('id', id);
-      if (error) throw error;
-      setFilas(filas.map(f => f.id === id ? { ...f, ...editData } : f));
-      setEditingId(null);
-    } catch (error) {
-      console.error("Error updating fila:", error);
+    if (isConfirmed) {
+      try {
+        setLoading(true);
+        const updates = {};
+        MESES.forEach(mes => {
+          updates[mes] = null;
+        });
+
+        const { error } = await supabase
+          .from('planilla_mensual')
+          .update(updates)
+          .neq('id', 0); // Actualiza todos los registros
+          
+        if (error) throw error;
+        
+        await fetchPlanilla();
+      } catch (error) {
+        console.error("Error reiniciando planilla:", error);
+        setLoading(false);
+      }
     }
   };
 
-  const handleUpdateMonto = async (id, mes, valorActual, nuevoValor) => {
-    if (!isAdmin || valorActual == nuevoValor) return;
+  const handleStartGlobalEdit = () => {
+    const initialData = {};
+    filas.forEach(f => { initialData[f.id] = { ...f } });
+    setEditingData(initialData);
+    setIsGlobalEdit(true);
+  };
+
+  const handleCancelGlobalEdit = () => {
+    setEditingData({});
+    setIsGlobalEdit(false);
+  };
+
+  const handleSaveAll = async () => {
     try {
-      const { error } = await supabase.from('planilla_mensual').update({ [mes]: nuevoValor }).eq('id', id);
-      if (error) throw error;
-      // Actualizar estado local para UX rápida
-      setFilas(filas.map(f => f.id === id ? { ...f, [mes]: nuevoValor } : f));
+      setLoading(true);
+      let successFilas = [...filas];
+      const updatesPromises = [];
+
+      for (const f of filas) {
+        const currentData = editingData[f.id];
+        if (!currentData) continue;
+        
+        const dataToSave = { ...currentData };
+        MESES.forEach(m => {
+          if (dataToSave[m] === "") {
+            dataToSave[m] = null;
+          }
+        });
+
+        // Verificar si hubo cambios para no enviar querys innecesarios
+        let hasChanges = false;
+        if (dataToSave.jerarquia !== f.jerarquia || dataToSave.socio !== f.socio) hasChanges = true;
+        MESES.forEach(m => {
+          // Convert both to strings or compare directly if null to handle number vs string gracefully
+          if (String(dataToSave[m] || '') !== String(f[m] || '')) {
+             hasChanges = true;
+          }
+        });
+
+        if (hasChanges) {
+          const promise = supabase.from('planilla_mensual').update(dataToSave).eq('id', f.id).then(({error}) => {
+            if (!error) {
+              successFilas = successFilas.map(fil => fil.id === f.id ? { ...fil, ...dataToSave } : fil);
+            } else {
+              console.error("Error actualizando fila:", f.id, error);
+            }
+          });
+          updatesPromises.push(promise);
+        }
+      }
+      
+      await Promise.all(updatesPromises);
+      setFilas(successFilas);
+      setEditingData({});
+      setIsGlobalEdit(false);
     } catch (error) {
-      console.error("Error updating monto:", error);
+      console.error("Error en guardado múltiple:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleDownloadPDF = () => {
     const doc = new jsPDF('landscape');
     doc.setFontSize(16);
-    doc.text("Planilla Mensual - Casino de Suboficiales", 14, 15);
+    doc.text("Planilla Mensual - Casino de Oficiales", 14, 15);
     doc.setFontSize(10);
     doc.text(`Fecha de emisión: ${new Date().toLocaleDateString()}`, 14, 22);
     
-    const tableColumn = ["Jerarquía", "Socio", ...MESES, "Total"];
+    const tableColumn = ["Nro Ord", "Jerarquía", "Socio", ...MESES, "Total"];
     const tableRows = [];
 
-    filasFiltradas.forEach((fila) => {
-      const rowData = [fila.jerarquia || '-', fila.socio];
+    filasFiltradas.forEach((fila, index) => {
+      const nroOrd = String(index + 1).padStart(2, '0');
+      const rowData = [nroOrd, fila.jerarquia || '-', fila.socio];
       MESES.forEach(mes => {
-        rowData.push(fila[mes] ? `$${fila[mes]}` : '-');
+        rowData.push(fila[mes] ? formatCurrency(fila[mes]) : '-');
       });
-      rowData.push(`$${calcularTotalFila(fila)}`);
+      rowData.push(formatCurrency(calcularTotalFila(fila)));
       tableRows.push(rowData);
     });
 
-    const totalRow = ["", "TOTALES", ...MESES.map(mes => `$${calcularTotalMes(mes)}`), `$${calcularTotalGeneral()}`];
+    const totalRow = ["", "", "TOTALES", ...MESES.map(mes => formatCurrency(calcularTotalMes(mes))), formatCurrency(calcularTotalGeneral())];
     tableRows.push(totalRow);
 
     autoTable(doc, {
@@ -137,7 +238,19 @@ const PlanillaMensual = ({ isAdmin }) => {
       startY: 28,
       headStyles: { fillColor: [25, 135, 84] },
       styles: { fontSize: 8, halign: 'center' },
-      columnStyles: { 1: { halign: 'left' } }
+      columnStyles: { 1: { halign: 'left' }, 2: { halign: 'left' } },
+      didParseCell: function(data) {
+        if (data.section === 'body') {
+          // Fila de TOTALES
+          if (data.row.index === filasFiltradas.length) {
+            data.cell.styles.fontStyle = 'bold';
+          }
+          // Columna "Total" (la última)
+          if (data.column.index === tableColumn.length - 1) {
+            data.cell.styles.fontStyle = 'bold';
+          }
+        }
+      }
     });
     
     doc.save("planilla_mensual.pdf");
@@ -145,11 +258,23 @@ const PlanillaMensual = ({ isAdmin }) => {
 
   return (
     <div className="card">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h3>Planilla Mensual</h3>
-        <button onClick={handleDownloadPDF} className="btn btn-primary d-flex gap-2">
-          <Download size={18} /> Descargar PDF
-        </button>
+      <div className="d-flex justify-content-between align-items-center mb-4 flex-column-mobile" style={{ gap: '12px', alignItems: 'stretch' }}>
+        <h3 className="mb-0">Planilla Mensual</h3>
+        <div className="d-flex gap-2 flex-column-mobile">
+          {isAdmin && (
+            <button onClick={handleReiniciarPlanilla} className="btn btn-warning d-flex align-items-center justify-content-center gap-2 text-dark btn-mobile-full">
+              <RotateCcw size={18} /> Reiniciar a Cero
+            </button>
+          )}
+          <button onClick={handleDownloadPDF} className="btn btn-primary d-flex align-items-center justify-content-center gap-2 btn-mobile-full">
+            <Download size={18} /> Descargar PDF
+          </button>
+          {isAdmin && !isGlobalEdit && (
+            <button onClick={handleStartGlobalEdit} className="btn btn-primary d-flex align-items-center justify-content-center gap-2 btn-mobile-full">
+              <Edit2 size={18} /> Editar Planilla
+            </button>
+          )}
+        </div>
       </div>
 
 
@@ -174,24 +299,29 @@ const PlanillaMensual = ({ isAdmin }) => {
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center' }}>
             <thead>
               <tr style={{ borderBottom: '2px solid var(--primary-green)' }}>
-                <th style={{ padding: '12px 8px', textAlign: 'left' }}>Jerarquía</th>
-                <th style={{ padding: '12px 8px', textAlign: 'left' }}>Socio</th>
+                <th style={{ padding: '8px 4px', textAlign: 'center', width: '40px', fontSize: '0.85rem' }}>Nro</th>
+                <th style={{ padding: '8px 4px', textAlign: 'left', minWidth: '100px', fontSize: '0.85rem' }}>Jerarquía</th>
+                <th style={{ padding: '8px 4px', textAlign: 'left', minWidth: '180px', fontSize: '0.85rem' }}>Socio</th>
                 {MESES.map(mes => (
-                  <th key={mes} style={{ padding: '12px 4px', fontSize: '0.9rem' }}>{mes}</th>
+                  <th key={mes} style={{ padding: '8px 2px', fontSize: '0.85rem' }}>{mes}</th>
                 ))}
-                <th style={{ padding: '12px 8px', fontSize: '0.9rem' }}>Total</th>
-                {isAdmin && <th style={{ padding: '12px 8px' }}>Acciones</th>}
+                <th style={{ padding: '8px 4px', fontSize: '0.85rem' }}>Total</th>
+                {isAdmin && !isGlobalEdit && <th style={{ padding: '8px 4px', position: 'sticky', right: 0, backgroundColor: 'var(--primary-color, #1a2a3a)', color: 'white', zIndex: 2, boxShadow: '-2px 0 5px rgba(0,0,0,0.1)', fontSize: '0.85rem' }}>Acciones</th>}
               </tr>
             </thead>
             <tbody>
-              {filasFiltradas.map((fila) => (
+              {filasFiltradas.map((fila, index) => (
                 <tr key={fila.id} style={{ borderBottom: '1px solid #eee' }}>
-                  <td style={{ padding: '12px 8px', textAlign: 'left', color: 'var(--text-light)', fontSize: '0.9rem' }}>
-                    {editingId === fila.id ? (
+                  <td style={{ padding: '8px 4px', textAlign: 'center', color: 'var(--text-light)', fontWeight: 'bold', fontSize: '0.85rem' }}>
+                    {String(index + 1).padStart(2, '0')}
+                  </td>
+                  <td style={{ padding: '8px 4px', textAlign: 'left', color: 'var(--text-light)', fontSize: '0.85rem', minWidth: '100px' }}>
+                    {isGlobalEdit && editingData[fila.id] ? (
                       <select 
-                        value={editData.jerarquia} 
-                        onChange={(e) => setEditData({...editData, jerarquia: e.target.value})}
+                        value={editingData[fila.id].jerarquia || ''} 
+                        onChange={(e) => setEditingData(prev => ({...prev, [fila.id]: {...prev[fila.id], jerarquia: e.target.value}}))}
                         className="form-control form-control-sm"
+                        style={{ minWidth: '95px', padding: '4px', fontSize: '0.85rem' }}
                       >
                         <option value="">Jerarquía...</option>
                         {JERARQUIAS.map((j) => <option key={j} value={j}>{j}</option>)}
@@ -200,29 +330,30 @@ const PlanillaMensual = ({ isAdmin }) => {
                       fila.jerarquia || '-'
                     )}
                   </td>
-                  <td style={{ padding: '12px 8px', textAlign: 'left', fontWeight: '500' }}>
-                    {editingId === fila.id ? (
+                  <td style={{ padding: '8px 4px', textAlign: 'left', fontWeight: 'bold', minWidth: '180px', fontSize: '0.85rem' }}>
+                    {isGlobalEdit && editingData[fila.id] ? (
                       <input 
                         type="text" 
-                        value={editData.socio} 
-                        onChange={(e) => setEditData({...editData, socio: e.target.value})}
+                        value={editingData[fila.id].socio || ''} 
+                        onChange={(e) => setEditingData(prev => ({...prev, [fila.id]: {...prev[fila.id], socio: e.target.value}}))}
                         className="form-control form-control-sm"
+                        style={{ minWidth: '170px', fontWeight: 'bold', padding: '4px', fontSize: '0.85rem' }}
                       />
                     ) : (
                       fila.socio
                     )}
                   </td>
                   {MESES.map(mes => (
-                    <td key={mes} style={{ padding: '12px 4px' }}>
-                      {isAdmin && editingId === fila.id ? (
-                        <div className="input-group input-group-sm" style={{ width: '70px', margin: '0 auto' }}>
-                          <span className="input-group-text" style={{ padding: '2px 4px', fontSize: '0.8rem' }}>$</span>
+                    <td key={mes} style={{ padding: '8px 2px', fontSize: '0.85rem' }}>
+                      {isAdmin && isGlobalEdit && editingData[fila.id] ? (
+                        <div className="input-group input-group-sm" style={{ width: '60px', margin: '0 auto' }}>
+                          <span className="input-group-text" style={{ padding: '2px', fontSize: '0.75rem' }}>$</span>
                           <input
                             type="number"
                             className="form-control text-center"
-                            defaultValue={fila[mes] || ''}
-                            onBlur={(e) => handleUpdateMonto(fila.id, mes, fila[mes], e.target.value)}
-                            style={{ padding: '2px 4px', fontSize: '0.85rem' }}
+                            value={editingData[fila.id][mes] || ''}
+                            onChange={(e) => setEditingData(prev => ({...prev, [fila.id]: {...prev[fila.id], [mes]: e.target.value}}))}
+                            style={{ padding: '2px', fontSize: '0.8rem' }}
                             placeholder="-"
                           />
                         </div>
@@ -231,42 +362,28 @@ const PlanillaMensual = ({ isAdmin }) => {
                           fontWeight: fila[mes] ? '600' : 'normal',
                           color: fila[mes] ? 'var(--primary-green)' : '#999'
                         }}>
-                          {fila[mes] ? `$${fila[mes]}` : '-'}
+                          {fila[mes] ? formatCurrency(fila[mes]) : '-'}
                         </span>
                       )}
                     </td>
                   ))}
-                  <td style={{ padding: '12px 8px', fontWeight: 'bold' }}>
-                    ${calcularTotalFila(fila)}
+                  <td style={{ padding: '8px 4px', fontWeight: 'bold', fontSize: '0.85rem' }}>
+                    {formatCurrency(calcularTotalFila(fila))}
                   </td>
-                  {isAdmin && (
-                    <td style={{ padding: '12px 8px' }}>
-                      {editingId === fila.id ? (
-                        <div className="d-flex gap-2 justify-content-center">
-                          <button onClick={() => handleSaveEdit(fila.id)} className="btn btn-success" style={{ padding: '6px 12px' }}>
-                            <Save size={16} />
-                          </button>
-                          <button onClick={() => setEditingId(null)} className="btn btn-secondary" style={{ padding: '6px 12px' }}>
-                            <X size={16} />
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="d-flex gap-2 justify-content-center">
-                          <button onClick={() => handleEditClick(fila)} className="btn btn-primary" style={{ padding: '6px 12px' }}>
-                            <Edit2 size={16} />
-                          </button>
-                          <button onClick={() => handleDelete(fila)} className="btn btn-danger" style={{ padding: '6px 12px' }}>
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      )}
+                  {isAdmin && !isGlobalEdit && (
+                    <td style={{ padding: '8px 4px', position: 'sticky', right: 0, backgroundColor: 'white', zIndex: 1, boxShadow: '-2px 0 5px rgba(0,0,0,0.05)', borderLeft: '1px solid #eee' }}>
+                      <div className="d-flex gap-2 justify-content-center">
+                        <button onClick={() => handleDelete(fila)} className="btn btn-outline-danger" style={{ padding: '4px 8px' }} title="Eliminar Socio">
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
                     </td>
                   )}
                 </tr>
               ))}
               {filasFiltradas.length === 0 && (
                 <tr>
-                  <td colSpan={isAdmin ? 16 : 15} className="text-center" style={{ padding: '20px' }}>
+                  <td colSpan={isAdmin ? 17 : 16} className="text-center" style={{ padding: '20px' }}>
                     No se encontraron socios.
                   </td>
                 </tr>
@@ -274,15 +391,52 @@ const PlanillaMensual = ({ isAdmin }) => {
             </tbody>
             <tfoot>
               <tr style={{ backgroundColor: 'var(--light-bg)', fontWeight: 'bold', borderTop: '2px solid var(--primary-green)' }}>
-                <td colSpan="2" style={{ padding: '12px 8px', textAlign: 'right' }}>TOTALES</td>
+                <td colSpan="3" style={{ padding: '8px', textAlign: 'right', fontSize: '0.85rem' }}>TOTALES</td>
                 {MESES.map(mes => (
-                  <td key={mes} style={{ padding: '12px 4px' }}>${calcularTotalMes(mes)}</td>
+                  <td key={mes} style={{ padding: '8px 2px', fontSize: '0.85rem' }}>{formatCurrency(calcularTotalMes(mes))}</td>
                 ))}
-                <td style={{ padding: '12px 8px' }}>${calcularTotalGeneral()}</td>
-                {isAdmin && <td></td>}
+                <td style={{ padding: '8px 4px', fontSize: '0.85rem' }}>{formatCurrency(calcularTotalGeneral())}</td>
+                {isAdmin && !isGlobalEdit && <td style={{ position: 'sticky', right: 0, backgroundColor: 'var(--light-bg)', zIndex: 1, borderLeft: '1px solid #eee' }}></td>}
               </tr>
             </tfoot>
           </table>
+        </div>
+      )}
+
+      {/* Panel flotante de guardado rápido */}
+      {isAdmin && isGlobalEdit && (
+        <div style={{
+          position: 'fixed',
+          bottom: '20px',
+          right: '20px',
+          backgroundColor: 'white',
+          padding: '15px 25px',
+          borderRadius: '12px',
+          boxShadow: '0 8px 30px rgba(0,0,0,0.3)',
+          border: '2px solid var(--primary-green)',
+          zIndex: 9999,
+          display: 'flex',
+          gap: '15px',
+          alignItems: 'center',
+          animation: 'slideUp 0.3s ease-out'
+        }}>
+          <span style={{ fontWeight: '600', color: 'var(--primary-green)', fontSize: '1.1rem' }} className="d-none d-sm-block">
+            Edición de Planilla Activada
+          </span>
+          <button 
+            onClick={handleSaveAll} 
+            className="btn btn-success d-flex align-items-center gap-2" 
+            style={{ padding: '10px 24px', fontSize: '1.1rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px' }}
+          >
+            <Save size={22} /> GUARDAR PLANILLA
+          </button>
+          <button 
+            onClick={handleCancelGlobalEdit} 
+            className="btn btn-outline-secondary d-flex align-items-center gap-2" 
+            style={{ padding: '10px 20px', fontSize: '1rem', fontWeight: 'bold' }}
+          >
+            <X size={20} /> Cancelar
+          </button>
         </div>
       )}
     </div>

@@ -9,9 +9,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.png', 'favicon.svg'],
       manifest: {
-        name: 'Casino de Suboficiales',
-        short_name: 'Casino Suboficiales',
-        description: 'Aplicación de gestión del Casino de Suboficiales',
+        name: 'Casino de Oficiales',
+        short_name: 'Casino Oficiales',
+        description: 'Aplicación de gestión del Casino de Oficiales',
         theme_color: '#198754',
         background_color: '#ffffff',
         display: 'standalone',

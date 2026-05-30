@@ -1,22 +1,23 @@
 :root {
-  /* Paleta Verde Curada */
-  --primary-green: #145A32;
-  --secondary-green: #229954;
-  --light-green: #E8F8F5;
-  --accent-green: #D4EFDF;
+  /* Nueva Paleta (Azul y Naranja) */
+  --primary-color: #1b4b6b;
+  --secondary-color: #2c6287;
+  --accent-color: #d66436;
+  --accent-light: #f5dbce;
+  --light-blue: #eef2f5;
   
   /* Grises y Texto */
-  --text-dark: #1C2833;
-  --text-light: #566573;
-  --bg-color: #F8F9F9;
+  --text-dark: #192734;
+  --text-light: #5a6b7c;
+  --bg-color: #e6f9ed;
   --white: #FFFFFF;
   --danger: #E74C3C;
   --danger-light: #FDEDEC;
 
   /* Elevaciones (Sombras) */
-  --shadow-sm: 0 4px 6px rgba(20, 90, 50, 0.04);
-  --shadow-md: 0 10px 20px rgba(20, 90, 50, 0.08);
-  --shadow-lg: 0 20px 40px rgba(20, 90, 50, 0.12);
+  --shadow-sm: 0 4px 6px rgba(27, 75, 107, 0.05);
+  --shadow-md: 0 10px 20px rgba(27, 75, 107, 0.1);
+  --shadow-lg: 0 20px 40px rgba(27, 75, 107, 0.15);
   
   /* Bordes */
   --radius-sm: 12px;
@@ -25,11 +26,17 @@
   --radius-full: 9999px;
   
   /* Transiciones */
-  --transition: none;
+  --transition: all 0.2s ease-in-out;
 }
 
 * {
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #root {
+  min-height: 100vh;
   margin: 0;
   padding: 0;
 }
@@ -46,7 +53,7 @@ body {
 h1, h2, h3, h4, h5, h6 {
   font-family: 'Outfit', sans-serif;
   font-weight: 700;
-  color: var(--primary-green);
+  color: var(--primary-color);
   letter-spacing: -0.02em;
 }
 
@@ -65,7 +72,7 @@ h1, h2, h3, h4, h5, h6 {
 input, textarea, select {
   width: 100%;
   padding: 14px 20px;
-  border: 2px solid transparent;
+  border: 1px solid #cbd5e1;
   background-color: #F2F4F4;
   border-radius: var(--radius-sm);
   font-size: 1rem;
@@ -81,8 +88,8 @@ input::placeholder, textarea::placeholder {
 
 input:focus, textarea:focus, select:focus {
   background-color: var(--white);
-  border-color: var(--secondary-green);
-  box-shadow: 0 0 0 4px rgba(34, 153, 84, 0.15);
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 4px rgba(214, 100, 54, 0.15);
 }
 
 /* Botones con Micro-animaciones */
@@ -102,16 +109,19 @@ input:focus, textarea:focus, select:focus {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--secondary-green) 0%, var(--primary-green) 100%);
+  background-color: var(--accent-color);
   color: var(--white);
-  box-shadow: 0 4px 12px rgba(20, 90, 50, 0.2);
+  box-shadow: 0 4px 12px rgba(214, 100, 54, 0.2);
 }
 
 .btn-primary:hover {
-  box-shadow: 0 8px 20px rgba(20, 90, 50, 0.3);
+  background-color: #c4562c;
+  box-shadow: 0 8px 20px rgba(214, 100, 54, 0.3);
+  transform: translateY(-2px);
 }
 
 .btn-primary:active {
+  transform: translateY(0);
 }
 
 .btn-danger {
@@ -152,9 +162,18 @@ thead th {
   text-transform: uppercase;
   font-size: 0.85rem;
   letter-spacing: 0.05em;
-  color: var(--text-light);
+  color: var(--white);
+  background-color: var(--primary-color);
   padding: 16px;
-  border-bottom: 2px solid var(--light-green);
+  border-bottom: 2px solid var(--secondary-color);
+}
+
+thead th:first-child {
+  border-top-left-radius: var(--radius-sm);
+}
+
+thead th:last-child {
+  border-top-right-radius: var(--radius-sm);
 }
 
 tbody tr {
@@ -162,7 +181,7 @@ tbody tr {
 }
 
 tbody tr:hover {
-  background-color: var(--light-green);
+  background-color: var(--light-blue);
 }
 
 tbody td {
@@ -212,5 +231,48 @@ tbody td {
   .btn-mobile-full {
     width: 100%;
     margin-bottom: 8px;
+  }
+  
+  .w-mobile-100 {
+    width: 100% !important;
+    max-width: none !important;
+  }
+}
+
+/* Botón Soporte WhatsApp */
+.whatsapp-support-btn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: #25D366;
+  color: white;
+  border-radius: 30px;
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  z-index: 1000;
+  text-decoration: none;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.whatsapp-support-btn:hover {
+  transform: scale(1.05);
+  color: white;
+}
+
+@media (max-width: 768px) {
+  .whatsapp-support-btn {
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 350px;
+  }
+  .whatsapp-support-btn:hover {
+    transform: translateX(-50%) scale(1.05);
   }
 }

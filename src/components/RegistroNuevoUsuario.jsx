@@ -3,14 +3,14 @@ import { Eye, EyeOff } from 'lucide-react';
 import { supabase } from '../supabase';
 
 const JERARQUIAS = [
-  "Suboficial Mayor",
-  "Suboficial Principal",
-  "Sargento Ayudante",
-  "Sargento Primero",
-  "Sargento",
-  "Cabo Primero",
-  "Cabo",
-  "Gendarme"
+  "Comandante General",
+  "Comandante Mayor",
+  "Comandante Principal",
+  "Comandante",
+  "Segundo Comandante",
+  "Primer Alférez",
+  "Alférez",
+  "Subalférez"
 ];
 
 const RegistroNuevoUsuario = () => {
@@ -94,10 +94,7 @@ const RegistroNuevoUsuario = () => {
         .from('planilla_mensual')
         .insert([{
           socio: formData.nombreApellido,
-          jerarquia: formData.jerarquia,
-          "Ene": "", "Feb": "", "Mar": "", "Abr": "", 
-          "May": "", "Jun": "", "Jul": "", "Ago": "", 
-          "Sep": "", "Oct": "", "Nov": "", "Dic": ""
+          jerarquia: formData.jerarquia
         }]);
 
       if (planillaError) throw planillaError;
@@ -112,7 +109,7 @@ const RegistroNuevoUsuario = () => {
       });
     } catch (error) {
       console.error("Error al registrar:", error);
-      setMensaje('Error al registrar el usuario.');
+      setMensaje('Error: ' + (error.message || 'al registrar el usuario.'));
     }
   };
 
@@ -137,7 +134,7 @@ const RegistroNuevoUsuario = () => {
             <input 
               type={showPassword ? "text" : "password"} 
               name="ce" 
-              placeholder="CE (Código Estadístico)" 
+              placeholder="Contraseña" 
               value={formData.ce} 
               onChange={handleChange} 
               required 

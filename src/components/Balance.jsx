@@ -2,10 +2,20 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../supabase';
 import { useModal } from '../context/ModalContext';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import { Download, Trash2, Plus, Search, Edit2, Save } from 'lucide-react';
 
 const MESES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+
+const capitalizeFirstLetter = (str) => {
+  if (!str) return '';
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+};
+
+const formatCurrency = (amount) => {
+  if (amount === null || amount === undefined || amount === '') return '0,00';
+  return Number(amount).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+};
 
 const Balance = ({ isAdmin }) => {
   const [balance, setBalance] = useState([]);
@@ -28,13 +38,14 @@ const Balance = ({ isAdmin }) => {
       if (planillaError) throw planillaError;
       const planillas = planillasData || [];
       
+      const currentYear = new Date().getFullYear();
       const virtuales = [];
       MESES.forEach((mes) => {
         const totalMes = planillas.reduce((acc, fila) => acc + (parseFloat(fila[mes]) || 0), 0);
         if (totalMes > 0) {
           virtuales.push({
             id: `virtual_${mes}`,
-            concepto: `Ingresos Planilla - ${mes}`,
+            concepto: `Ingresos Planilla - ${mes} ${currentYear}`,
             haber: totalMes,
             debe: 0,
             isVirtual: true
@@ -121,7 +132,7 @@ const Balance = ({ isAdmin }) => {
   const handleDownloadPDF = () => {
     const doc = new jsPDF();
     doc.setFontSize(16);
-    doc.text("Balance de Ingreso / Egreso - Casino de Suboficiales", 14, 15);
+    doc.text("Balance de Ingreso / Egreso - Casino de Oficiales", 14, 15);
     doc.setFontSize(10);
     doc.text(`Fecha de emisión: ${new Date().toLocaleDateString()}`, 14, 22);
     
@@ -136,23 +147,37 @@ const Balance = ({ isAdmin }) => {
       totalDebe += parseFloat(item.debe) || 0;
       const rowData = [
         index + 1,
-        item.concepto,
-        `$ ${item.haber}`,
-        `$ ${item.debe}`
+        capitalizeFirstLetter(item.concepto),
+        `$${formatCurrency(item.haber)}`,
+        `$${formatCurrency(item.debe)}`
       ];
       tableRows.push(rowData);
     });
 
-    tableRows.push(["", "TOTALES", `$ ${totalHaber.toFixed(2)}`, `$ ${totalDebe.toFixed(2)}`]);
-    tableRows.push(["", "SALDO DISPONIBLE", "", `$ ${(totalHaber - totalDebe).toFixed(2)}`]);
+    tableRows.push(["", "TOTALES", `$${formatCurrency(totalHaber)}`, `$${formatCurrency(totalDebe)}`]);
+    tableRows.push(["", "SALDO DISPONIBLE", "", `$${formatCurrency(totalHaber - totalDebe)}`]);
 
-    doc.autoTable({
+    autoTable(doc, {
       head: [tableColumn],
       body: tableRows,
       startY: 28,
       headStyles: { fillColor: [25, 135, 84] },
       styles: { fontSize: 10, halign: 'center' },
-      columnStyles: { 1: { halign: 'left' } }
+      columnStyles: { 1: { halign: 'left' } },
+      didParseCell: function(data) {
+        if (data.section === 'body') {
+          if (data.row.index === balanceFiltrado.length) {
+            // Fila de TOTALES
+            data.cell.styles.fillColor = [232, 248, 245];
+            data.cell.styles.fontStyle = 'bold';
+          }
+          if (data.row.index === balanceFiltrado.length + 1) {
+            // Fila de SALDO DISPONIBLE
+            data.cell.styles.fillColor = [232, 248, 245];
+            data.cell.styles.fontStyle = 'bold';
+          }
+        }
+      }
     });
     
     doc.save("balance_ingreso_egreso.pdf");
@@ -164,9 +189,9 @@ const Balance = ({ isAdmin }) => {
 
   return (
     <div className="card">
-      <div className="d-flex justify-content-between align-items-center mb-4" style={{ flexWrap: 'wrap', gap: '12px' }}>
-        <h3>Balance Ingreso / Egreso</h3>
-        <button onClick={handleDownloadPDF} className="btn btn-primary d-flex gap-2">
+      <div className="d-flex justify-content-between align-items-center mb-4 flex-column-mobile" style={{ gap: '12px', alignItems: 'stretch' }}>
+        <h3 className="mb-0">Balance Ingreso / Egreso</h3>
+        <button onClick={handleDownloadPDF} className="btn btn-primary d-flex justify-content-center align-items-center gap-2 btn-mobile-full">
           <Download size={18} /> Descargar PDF
         </button>
       </div>
@@ -177,7 +202,7 @@ const Balance = ({ isAdmin }) => {
             type="text" 
             placeholder="Concepto de Gasto" 
             value={nuevoConcepto} 
-            onChange={(e) => setNuevoConcepto(e.target.value)} 
+            onChange={(e) => setNuevoConcepto(capitalizeFirstLetter(e.target.value))} 
             required 
             style={{flex: 2, minWidth: '200px'}}
           />
@@ -235,7 +260,7 @@ const Balance = ({ isAdmin }) => {
                   {editingId === item.id ? (
                     <>
                       <td style={{ padding: '12px 8px' }}>
-                        <input type="text" value={editFormData.concepto} onChange={e => setEditFormData({...editFormData, concepto: e.target.value})} style={{width: '100%', padding: '4px 8px', borderRadius: '4px', border: '1px solid #ccc'}} />
+                        <input type="text" value={editFormData.concepto} onChange={e => setEditFormData({...editFormData, concepto: capitalizeFirstLetter(e.target.value)})} style={{width: '100%', padding: '4px 8px', borderRadius: '4px', border: '1px solid #ccc'}} />
                       </td>
                       <td style={{ padding: '12px 8px' }}>
                         <input type="number" value={editFormData.haber} onChange={e => setEditFormData({...editFormData, haber: e.target.value})} style={{width: '100px', padding: '4px 8px', borderRadius: '4px', border: '1px solid #ccc'}} />
@@ -246,9 +271,9 @@ const Balance = ({ isAdmin }) => {
                     </>
                   ) : (
                     <>
-                      <td style={{ padding: '12px 8px' }}>{item.concepto}</td>
-                      <td style={{ padding: '12px 8px', color: 'var(--primary-green)' }}>$ {item.haber}</td>
-                      <td style={{ padding: '12px 8px', color: 'var(--danger)', fontWeight: '600' }}>$ {item.debe}</td>
+                      <td style={{ padding: '12px 8px' }}>{capitalizeFirstLetter(item.concepto)}</td>
+                      <td style={{ padding: '12px 8px', color: 'var(--primary-green)', whiteSpace: 'nowrap' }}>$ {formatCurrency(item.haber)}</td>
+                      <td style={{ padding: '12px 8px', color: 'var(--danger)', fontWeight: '600', whiteSpace: 'nowrap' }}>$ {formatCurrency(item.debe)}</td>
                     </>
                   )}
                   {isAdmin && (
@@ -302,11 +327,11 @@ const Balance = ({ isAdmin }) => {
                   <td colSpan="2" style={{ padding: '16px 16px', textAlign: 'left', fontWeight: 'bold', color: '#1C2833', fontSize: '1rem' }}>
                     TOTALES:
                   </td>
-                  <td style={{ padding: '16px 8px', color: 'var(--primary-green)', fontWeight: 'bold', fontSize: '1.1rem' }}>
-                    $ {totalHaberUI.toFixed(2)}
+                  <td style={{ padding: '16px 8px', color: 'var(--primary-green)', fontWeight: 'bold', fontSize: '1.1rem', whiteSpace: 'nowrap' }}>
+                    $ {formatCurrency(totalHaberUI)}
                   </td>
-                  <td style={{ padding: '16px 8px', color: 'var(--danger)', fontWeight: 'bold', fontSize: '1.1rem' }}>
-                    $ {totalDebeUI.toFixed(2)}
+                  <td style={{ padding: '16px 8px', color: 'var(--danger)', fontWeight: 'bold', fontSize: '1.1rem', whiteSpace: 'nowrap' }}>
+                    $ {formatCurrency(totalDebeUI)}
                   </td>
                   {isAdmin && <td></td>}
                 </tr>
@@ -314,8 +339,8 @@ const Balance = ({ isAdmin }) => {
                   <td colSpan="2" style={{ padding: '16px 16px', textAlign: 'left', fontWeight: 'bold', color: '#1C2833', fontSize: '1rem', borderTop: '1px solid #D4EFDF' }}>
                     SALDO NETO:
                   </td>
-                  <td colSpan="2" style={{ padding: '16px 8px', color: saldoNetoUI >= 0 ? 'var(--primary-green)' : 'var(--danger)', fontWeight: '800', fontSize: '1.25rem', borderTop: '1px solid #D4EFDF', textAlign: 'center' }}>
-                    $ {saldoNetoUI.toFixed(2)}
+                  <td colSpan="2" style={{ padding: '16px 8px', color: saldoNetoUI >= 0 ? 'var(--primary-green)' : 'var(--danger)', fontWeight: '800', fontSize: '1.25rem', borderTop: '1px solid #D4EFDF', textAlign: 'center', whiteSpace: 'nowrap' }}>
+                    $ {formatCurrency(saldoNetoUI)}
                   </td>
                   {isAdmin && <td style={{ borderTop: '1px solid #D4EFDF' }}></td>}
                 </tr>

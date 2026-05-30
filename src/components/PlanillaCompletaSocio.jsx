@@ -31,8 +31,8 @@ const PlanillaCompletaSocio = ({ isAdmin }) => {
       if (error) throw error;
       const data = rawData || [];
       
-      // Ordenar alfabéticamente por nombre
-      data.sort((a, b) => (a.nombreApellido || '').localeCompare(b.nombreApellido || ''));
+      // Ordenar por orden de carga (ID)
+      data.sort((a, b) => a.id - b.id);
       
       setUsuarios(data);
       setLoading(false);
@@ -124,11 +124,13 @@ const PlanillaCompletaSocio = ({ isAdmin }) => {
     doc.setFontSize(10);
     doc.text(`Fecha de emisión: ${new Date().toLocaleDateString()}`, 14, 22);
     
-    const tableColumn = ["Jerarquía", "Nombre y Apellido", "DNI (MI)", "CE", "Fecha Nac.", "Edad", "Teléfono"];
+    const tableColumn = ["NUM ORD", "Jerarquía", "Nombre y Apellido", "DNI (MI)", "CE", "Fecha Nac.", "Edad", "Teléfono"];
     const tableRows = [];
 
-    usuariosFiltrados.forEach((user) => {
+    usuariosFiltrados.forEach((user, index) => {
+      const numOrd = String(index + 1).padStart(2, '0');
       const rowData = [
+        numOrd,
         user.jerarquia || '-',
         user.nombreApellido || '-',
         user.dni || '-',
@@ -180,7 +182,8 @@ const PlanillaCompletaSocio = ({ isAdmin }) => {
           <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px' }}>
             <thead>
               <tr style={{ backgroundColor: 'var(--primary-green)', color: 'white', textAlign: 'left' }}>
-                <th style={{ padding: '12px 8px', borderRadius: '4px 0 0 4px', color: 'white' }}>Jerarquía</th>
+                <th style={{ padding: '12px 8px', borderRadius: '4px 0 0 4px', color: 'white' }}>NUM ORD</th>
+                <th style={{ padding: '12px 8px', color: 'white' }}>Jerarquía</th>
                 <th style={{ padding: '12px 8px', color: 'white' }}>Nombre y Apellido</th>
                 <th style={{ padding: '12px 8px', color: 'white' }}>DNI (MI)</th>
                 <th style={{ padding: '12px 8px', color: 'white' }}>CE</th>
@@ -191,10 +194,11 @@ const PlanillaCompletaSocio = ({ isAdmin }) => {
               </tr>
             </thead>
             <tbody>
-              {usuariosFiltrados.map((user) => (
+              {usuariosFiltrados.map((user, index) => (
                 <tr key={user.id} style={{ borderBottom: '1px solid #eee' }}>
                   {editingId === user.id ? (
                     <>
+                      <td style={{ padding: '12px 8px', fontWeight: 'bold' }}>{String(index + 1).padStart(2, '0')}</td>
                       <td style={{ padding: '12px 8px' }}>
                         <select 
                           value={editData.jerarquia || ''} 
@@ -202,8 +206,8 @@ const PlanillaCompletaSocio = ({ isAdmin }) => {
                           style={{ width: '100%', padding: '4px' }}
                         >
                           <option value="">Seleccione...</option>
-                          <option value="Suboficial Mayor">Suboficial Mayor</option>
-                          <option value="Suboficial Principal">Suboficial Principal</option>
+                          <option value="Oficial Mayor">Oficial Mayor</option>
+                          <option value="Oficial Principal">Oficial Principal</option>
                           <option value="Sargento Ayudante">Sargento Ayudante</option>
                           <option value="Sargento Primero">Sargento Primero</option>
                           <option value="Sargento">Sargento</option>
@@ -275,6 +279,7 @@ const PlanillaCompletaSocio = ({ isAdmin }) => {
                     </>
                   ) : (
                     <>
+                      <td style={{ padding: '12px 8px', fontWeight: 'bold' }}>{String(index + 1).padStart(2, '0')}</td>
                       <td style={{ padding: '12px 8px' }}>{user.jerarquia || '-'}</td>
                       <td style={{ padding: '12px 8px', fontWeight: '500' }}>{user.nombreApellido}</td>
                       <td style={{ padding: '12px 8px' }}>{user.dni}</td>
@@ -310,7 +315,7 @@ const PlanillaCompletaSocio = ({ isAdmin }) => {
               ))}
               {usuariosFiltrados.length === 0 && (
                 <tr>
-                  <td colSpan={isAdmin ? 8 : 7} className="text-center" style={{ padding: '20px' }}>
+                  <td colSpan={isAdmin ? 9 : 8} className="text-center" style={{ padding: '20px' }}>
                     No se encontraron socios registrados.
                   </td>
                 </tr>

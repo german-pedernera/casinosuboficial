@@ -133,7 +133,7 @@ const Estadisticas = ({ isAdmin = false }) => {
 
       <div className="row g-4">
         {/* Gráfico de Balance */}
-        <div className="col-12 col-md-7">
+        <div className="col-12 col-md-6">
           <div className="card h-100 mb-4" style={{ backgroundColor: '#fff' }}>
             <div className="d-flex align-items-center gap-2 mb-4" style={{ flexWrap: 'wrap' }}>
               <TrendingUp size={20} color="var(--primary-green)" />
@@ -150,7 +150,7 @@ const Estadisticas = ({ isAdmin = false }) => {
                       cx="50%"
                       cy="50%"
                       labelLine={false}
-                      outerRadius="40%"
+                      outerRadius={100}
                       fill="#8884d8"
                       dataKey="value"
                       label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
@@ -172,7 +172,7 @@ const Estadisticas = ({ isAdmin = false }) => {
         </div>
 
         {/* Gráfico de Torta - Ingresos Mensuales */}
-        <div className="col-12 col-md-5">
+        <div className="col-12 col-md-6">
           <div className="card h-100 mb-4" style={{ backgroundColor: '#fff' }}>
             <div className="d-flex align-items-center gap-2 mb-4">
               <DollarSign size={20} color="var(--primary-green)" />

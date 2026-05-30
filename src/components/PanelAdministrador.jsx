@@ -7,6 +7,7 @@ import RegistroSocios from './RegistroSocios';
 import RegistroNuevoUsuario from './RegistroNuevoUsuario';
 import PlanillaCompletaSocio from './PlanillaCompletaSocio';
 import Estadisticas from './Estadisticas';
+import AccesoSocio from './AccesoSocio';
 
 const PanelAdministrador = () => {
   const [activeTab, setActiveTab] = useState('planilla');
@@ -19,6 +20,7 @@ const PanelAdministrador = () => {
     { id: 'nuevoSocio', label: 'Alta Socio' },
     { id: 'socios', label: 'Fecha de cumpleaños' },
     { id: 'planillaCompleta', label: 'Planilla Completa Socio' },
+    { id: 'accesoSocio', label: 'Acceso Socio' },
     { id: 'estadisticas', label: 'Estadísticas' }
   ];
 
@@ -62,8 +64,9 @@ const PanelAdministrador = () => {
         {activeTab === 'balance' && <Balance isAdmin={true} />}
         {activeTab === 'nuevoSocio' && <RegistroNuevoUsuario />}
         {activeTab === 'socios' && <RegistroSocios isAdmin={true} />}
-        {activeTab === 'planillaCompleta' && <PlanillaCompletaSocio isAdmin={true} />}
-        {activeTab === 'estadisticas' && <Estadisticas />}
+        { activeTab === 'planillaCompleta' && <PlanillaCompletaSocio isAdmin={true} /> }
+        { activeTab === 'accesoSocio' && <AccesoSocio /> }
+        { activeTab === 'estadisticas' && <Estadisticas /> }
       </div>
     </div>
   );

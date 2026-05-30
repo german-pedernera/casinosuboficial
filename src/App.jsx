@@ -11,6 +11,7 @@ import Balance from './components/Balance';
 import RegistroSocios from './components/RegistroSocios';
 import PanelAdministrador from './components/PanelAdministrador';
 import Estadisticas from './components/Estadisticas';
+import InstallPrompt from './components/InstallPrompt';
 import { ModalProvider } from './context/ModalContext';
 
 function App() {
@@ -18,6 +19,7 @@ function App() {
 
   return (
     <ModalProvider>
+      <InstallPrompt />
       <BrowserRouter>
         <Routes>
         <Route 
@@ -33,7 +35,7 @@ function App() {
           <Route path="/galeria" element={<GaleriaFotografica isAdmin={false} />} />
           <Route path="/balance" element={<Balance isAdmin={false} />} />
           <Route path="/socios" element={<RegistroSocios isAdmin={false} />} />
-          <Route path="/estadisticas" element={<Estadisticas isAdmin={user?.role === 'admin'} />} />
+          <Route path="/estadisticas" element={<Estadisticas isAdmin={false} />} />
           <Route path="/admin" element={user?.role === 'admin' ? <PanelAdministrador /> : <Navigate to="/panel" />} />
         </Route>
         </Routes>

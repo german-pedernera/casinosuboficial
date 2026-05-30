@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../supabase';
 import { useOutletContext } from 'react-router-dom';
 import { ThumbsUp, Trash2 } from 'lucide-react';
+import { enviarNotificacionTelegram } from '../services/TelegramService';
 
 const PanelPrincipal = ({ user }) => {
   const { onlineCount } = useOutletContext() || { onlineCount: 1 };
@@ -11,6 +12,7 @@ const PanelPrincipal = ({ user }) => {
   const [mensaje, setMensaje] = useState('');
   const [propuestas, setPropuestas] = useState([]);
   const [loadingPropuestas, setLoadingPropuestas] = useState(true);
+  const [enviando, setEnviando] = useState(false);
 
   const fetchPropuestas = async () => {
     try {
@@ -29,6 +31,7 @@ const PanelPrincipal = ({ user }) => {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchPropuestas();
   }, []);
 
@@ -40,6 +43,23 @@ const PanelPrincipal = ({ user }) => {
     }
 
     try {
+      setEnviando(true);
+
+      // Obtener ubicación siempre (por decisión de los socios)
+      let ubicacionTexto = '';
+      if (navigator.geolocation) {
+        try {
+          const position = await new Promise((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 10000 });
+          });
+          const { latitude, longitude } = position.coords;
+          ubicacionTexto = `\n📍 <b>Ubicación:</b> <a href="https://www.google.com/maps?q=${latitude},${longitude}">Ver en Google Maps</a>`;
+        } catch (geoError) {
+          console.warn('No se pudo obtener la ubicación', geoError);
+          ubicacionTexto = '\n📍 <i>Ubicación solicitada pero no disponible o denegada por el navegador.</i>';
+        }
+      }
+
       const { error } = await supabase.from('propuestas').insert([{
         mi: mi,
         ce: ce,
@@ -50,6 +70,12 @@ const PanelPrincipal = ({ user }) => {
         votos: []
       }]);
       if (error) throw error;
+
+      // Enviar notificación a Telegram
+      const fechaActual = new Date().toLocaleString('es-AR');
+      const mensajeTelegram = `💡 <b>NUEVA PROPUESTA</b>\n👤 De: ${user?.rank || 'N/A'} ${user?.name || 'Usuario'}\n📅 Fecha: ${fechaActual}\n📝 <b>Mensaje:</b>\n<i>"${propuesta}"</i>${ubicacionTexto}`;
+      enviarNotificacionTelegram(mensajeTelegram);
+
       setPropuesta('');
       setMi('');
       setCe('');
@@ -60,6 +86,8 @@ const PanelPrincipal = ({ user }) => {
     } catch (error) {
       console.error('Error al enviar propuesta:', error);
       setMensaje('Hubo un error al enviar la propuesta.');
+    } finally {
+      setEnviando(false);
     }
   };
 
@@ -75,7 +103,7 @@ const PanelPrincipal = ({ user }) => {
       } else if (Array.isArray(currentVotos)) {
         votosArray = currentVotos;
       }
-    } catch (e) {
+    } catch {
       votosArray = [];
     }
 
@@ -121,9 +149,30 @@ const PanelPrincipal = ({ user }) => {
     <div className="container">
       <h2 className="mb-4">Panel Principal</h2>
       
-      <div className="card mb-4">
-        <h3>Bienvenido/a, {user?.rank} {user?.name}</h3>
-        <p className="text-light mt-4">Personas actualmente ingresadas en la aplicación: <strong>{onlineCount}</strong></p>
+      <div className="card mb-4" style={{ borderLeft: '4px solid var(--primary-green)' }}>
+        <h3>Bienvenido/a al Casino de Oficiales, {user?.rank} {user?.name}</h3>
+        <p className="mt-3" style={{ fontSize: '1.05rem', color: '#444', lineHeight: '1.5' }}>
+          Nos enorgullece recibirte en este espacio exclusivo diseñado para nuestros socios. Aquí podrás participar activamente enviando tus propuestas, acceder a documentación importante, revisar estados de cuenta y mantenerte informado sobre las novedades de nuestro Escuadrón. <strong>¡Tu participación y compromiso son fundamentales para seguir creciendo juntos!</strong>
+        </p>
+        <div className="d-flex align-items-center mt-3 p-2 rounded" style={{ backgroundColor: '#e8f4f0', display: 'inline-block', width: 'fit-content' }}>
+          <span style={{ color: 'var(--primary-green)', fontWeight: '600' }}>
+            <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#28a745', marginRight: '8px' }}></span>
+            Oficiales conectados en este momento: <strong>{onlineCount}</strong>
+          </span>
+        </div>
+      </div>
+
+      <div className="card mb-4" style={{ borderLeft: '4px solid var(--accent-color)' }}>
+        <h3>Datos para el Abono Mensual</h3>
+        <p className="mt-2 text-light" style={{ fontSize: '0.95rem' }}>
+          Realice su abono mensual del Casino de Oficiales a la siguiente cuenta bancaria:
+        </p>
+        <div className="mt-3 p-3" style={{ backgroundColor: '#fdfdfd', borderRadius: '8px', border: '1px solid #eaeded' }}>
+          <p className="mb-2"><strong>Titular:</strong> German Andres Ramirez Pedernera</p>
+          <p className="mb-2"><strong>Alias:</strong> <span style={{ backgroundColor: '#e8f4f0', padding: '4px 8px', borderRadius: '4px', fontWeight: 'bold', color: 'var(--primary-green)' }}>profepedernera</span></p>
+          <p className="mb-2"><strong>CBU:</strong> 1430001713020634460010</p>
+          <p className="mb-0"><strong>NRO. CUENTA:</strong> 1302063446001</p>
+        </div>
       </div>
 
       <div className="card mb-4">
@@ -155,22 +204,23 @@ const PanelPrincipal = ({ user }) => {
             />
             <input
               type="password"
-              placeholder="Ingrese su CE"
+              placeholder="Ingrese su Contraseña"
               value={ce}
               onChange={(e) => setCe(e.target.value)}
               required
               autoComplete="new-password"
             />
           </div>
+
           {mensaje && <p className={mensaje.includes('error') ? 'text-danger' : 'text-success'} style={{color: mensaje.includes('error') ? 'var(--danger)' : 'var(--primary-green)'}}>{mensaje}</p>}
-          <button type="submit" className="btn btn-primary btn-mobile-full" style={{alignSelf: 'flex-start'}}>
-            Enviar Propuesta
+          <button type="submit" className="btn btn-primary btn-mobile-full" style={{alignSelf: 'flex-start'}} disabled={enviando}>
+            {enviando ? 'Enviando...' : 'Enviar Propuesta'}
           </button>
         </form>
       </div>
 
       <div className="card">
-        <h3 className="mb-4">Propuestas de la Comunidad</h3>
+        <h3 className="mb-4">Propuestas de los Socios</h3>
         {loadingPropuestas ? (
           <p className="text-light">Cargando propuestas...</p>
         ) : propuestas.length === 0 ? (
@@ -182,7 +232,7 @@ const PanelPrincipal = ({ user }) => {
               try {
                 if (typeof p.votos === 'string') votos = JSON.parse(p.votos);
                 else if (Array.isArray(p.votos)) votos = p.votos;
-              } catch(e) { votos = []; }
+              } catch { votos = []; }
 
               const userId = user?.name || 'Anonimo';
               const yaVoto = votos.includes(userId);

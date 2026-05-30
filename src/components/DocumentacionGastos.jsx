@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../supabase';
 import { useModal } from '../context/ModalContext';
-import { Download, Trash2, Upload, FileText, Search } from 'lucide-react';
+import { Download, Trash2, Upload, FileText, Search, Edit2, Save, X } from 'lucide-react';
 
 const DocumentacionGastos = ({ isAdmin }) => {
   const [documentos, setDocumentos] = useState([]);
@@ -10,6 +10,8 @@ const DocumentacionGastos = ({ isAdmin }) => {
   const [titulo, setTitulo] = useState('');
   const [file, setFile] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [editingId, setEditingId] = useState(null);
+  const [editTitle, setEditTitle] = useState('');
   const { showModal } = useModal();
 
   const fetchDocumentos = async () => {
@@ -85,6 +87,24 @@ const DocumentacionGastos = ({ isAdmin }) => {
     }
   };
 
+  const handleEditClick = (item) => {
+    setEditingId(item.id);
+    setEditTitle(item.titulo);
+  };
+
+  const handleSaveEdit = async (id) => {
+    if (!editTitle.trim()) return;
+    try {
+      const { error } = await supabase.from('documentacion').update({ titulo: editTitle }).eq('id', id);
+      if (error) throw error;
+      setEditingId(null);
+      fetchDocumentos();
+    } catch (error) {
+      console.error("Error updating title:", error);
+      showModal({ type: 'alert', title: 'Error', message: 'Hubo un error al actualizar el título del documento.' });
+    }
+  };
+
   return (
     <div className="card">
       <h3 className="mb-4">Documentación de Gastos</h3>
@@ -134,9 +154,32 @@ const DocumentacionGastos = ({ isAdmin }) => {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
           {documentos.filter(item => item.titulo.toLowerCase().includes(searchTerm.toLowerCase())).map((item) => (
             <div key={item.id} className="card d-flex flex-column justify-content-between" style={{ padding: '16px', border: '1px solid #eee' }}>
-              <div className="d-flex align-items-center gap-2 mb-4">
-                <FileText size={32} color="var(--primary-green)" />
-                <h4 style={{ margin: 0, fontSize: '1.1rem' }}>{item.titulo}</h4>
+              <div className="d-flex align-items-center gap-2 mb-4 w-100">
+                <FileText size={32} color="var(--primary-green)" style={{ flexShrink: 0 }} />
+                {editingId === item.id ? (
+                  <div className="d-flex flex-column w-100 gap-2">
+                    <input 
+                      type="text" 
+                      value={editTitle} 
+                      onChange={(e) => setEditTitle(e.target.value)}
+                      className="form-control"
+                      style={{ fontSize: '0.9rem' }}
+                    />
+                    <div className="d-flex gap-2">
+                      <button onClick={() => handleSaveEdit(item.id)} className="btn btn-success btn-sm flex-grow-1 d-flex justify-content-center align-items-center gap-1"><Save size={14} /> Guardar</button>
+                      <button onClick={() => setEditingId(null)} className="btn btn-secondary btn-sm flex-grow-1 d-flex justify-content-center align-items-center gap-1"><X size={14} /> Cancelar</button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="d-flex justify-content-between align-items-center w-100">
+                    <h4 style={{ margin: 0, fontSize: '1.1rem', wordBreak: 'break-word', paddingRight: '10px' }}>{item.titulo}</h4>
+                    {isAdmin && (
+                      <button onClick={() => handleEditClick(item)} className="btn btn-light btn-sm p-1 text-primary" style={{border: '1px solid #dee2e6', flexShrink: 0}} title="Editar título">
+                        <Edit2 size={16} />
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
               <div className="d-flex justify-content-center gap-3 w-100">
                 <a href={item.url} target="_blank" rel="noopener noreferrer" className="btn btn-primary d-flex align-items-center justify-content-center gap-2" style={{ padding: '8px 16px', textDecoration: 'none', fontSize: '0.9rem', flex: 1 }}>

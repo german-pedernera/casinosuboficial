@@ -1,4 +1,4 @@
--- Script de inicialización de Base de Datos para Casino de Suboficiales
+-- Script de inicialización de Base de Datos para Casino de Oficiales
 
 -- 1. Crear tabla 'usuarios'
 CREATE TABLE IF NOT EXISTS public.usuarios (

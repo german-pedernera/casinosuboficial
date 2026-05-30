@@ -27,10 +27,18 @@
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background-color: var(--light-green);
-  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%23145A32" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>');
+  background-color: var(--white);
+  background-image: url('/santa_catalina_logo.jpg');
+  background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
+  animation: floatSmall 4s ease-in-out infinite;
+}
+
+@keyframes floatSmall {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-4px); }
+  100% { transform: translateY(0px); }
 }
 
 .navbar-title {
@@ -52,6 +60,10 @@
   color: var(--text-dark);
 }
 
+.sidebar .user-info {
+  color: var(--white);
+}
+
 .menu-toggle {
   background: none;
   padding: 8px;
@@ -66,8 +78,8 @@
 
 .sidebar {
   width: 310px;
-  background-color: var(--white);
-  border-right: 1px solid #EAEDED;
+  background-color: var(--primary-color);
+  border-right: none;
   padding: 32px 0;
   display: flex;
   flex-direction: column;
@@ -89,7 +101,7 @@
   gap: 16px;
   padding: 14px 20px;
   border-radius: var(--radius-sm);
-  color: var(--text-light);
+  color: rgba(255, 255, 255, 0.7);
   text-decoration: none;
   font-family: 'Outfit', sans-serif;
   font-weight: 600;
@@ -104,23 +116,23 @@
 }
 
 .nav-link:hover {
-  background-color: #F8F9F9;
-  color: var(--primary-green);
+  background-color: var(--secondary-color);
+  color: var(--white);
 }
 
 .nav-link.active {
-  background-color: var(--light-green);
-  color: var(--primary-green);
-  border-left: 4px solid var(--secondary-green);
+  background-color: var(--accent-color);
+  color: var(--white);
+  border-left: 4px solid var(--accent-light);
 }
 
 .btn-logout {
-  color: var(--danger);
+  color: #ff8787;
 }
 
 .btn-logout:hover {
-  background-color: var(--danger-light);
-  color: var(--danger);
+  background-color: rgba(255, 135, 135, 0.1);
+  color: #ff6b6b;
 }
 
 .content {
@@ -152,7 +164,7 @@
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    background-color: var(--white);
+    background-color: var(--primary-color);
     padding-bottom: 24px;
   }
 
@@ -182,7 +194,7 @@
 
 @media (min-width: 769px) {
   .menu-toggle {
-    display: none;
+    display: none !important;
   }
 }
 
@@ -217,5 +229,49 @@
   100% {
     opacity: 0;
     transform: perspective(1500px) rotateY(-90deg);
+  }
+}
+
+/* WhatsApp Floating Button */
+.whatsapp-float {
+  position: fixed;
+  width: 60px;
+  height: 60px;
+  bottom: 40px;
+  right: 40px;
+  background-color: #25d366;
+  color: #FFF;
+  border-radius: 50px;
+  text-align: center;
+  box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.whatsapp-float:hover {
+  transform: scale(1.1);
+  box-shadow: 2px 2px 15px rgba(37, 211, 102, 0.5);
+  color: #FFF;
+}
+
+.whatsapp-float svg {
+  width: 35px;
+  height: 35px;
+  fill: currentColor;
+}
+
+@media (max-width: 768px) {
+  .whatsapp-float {
+    width: 50px;
+    height: 50px;
+    bottom: 20px;
+    right: 20px;
+  }
+  .whatsapp-float svg {
+    width: 30px;
+    height: 30px;
   }
 }
