@@ -100,10 +100,11 @@ const CambiarContrasena = ({ onBack }) => {
 
         {step === 1 ? (
           <form onSubmit={handleVerify} autoComplete="off" className="d-flex flex-column gap-3">
-            <div>
+            <div className="form-group">
+              <label>DNI (MI)</label>
               <input 
                 type="text" 
-                placeholder="DNI (MI)" 
+                className="login-input"
                 value={mi}
                 onChange={(e) => setMi(e.target.value)}
                 required 
@@ -111,10 +112,11 @@ const CambiarContrasena = ({ onBack }) => {
               />
             </div>
             
-            <div className="position-relative">
+            <div className="form-group position-relative">
+              <label>Contraseña Actual</label>
               <input 
                 type={showCeActual ? "text" : "password"} 
-                placeholder="Contraseña Actual" 
+                className="login-input"
                 value={ceActual}
                 onChange={(e) => setCeActual(e.target.value)}
                 required 
@@ -123,8 +125,7 @@ const CambiarContrasena = ({ onBack }) => {
               />
               <button 
                 type="button"
-                className="btn btn-link position-absolute"
-                style={{ right: '10px', top: '50%', transform: 'translateY(-50%)', padding: 0, color: '#6c757d', border: 'none', background: 'none' }}
+                className="password-toggle"
                 onClick={() => setShowCeActual(!showCeActual)}
                 title={showCeActual ? "Ocultar contraseña" : "Ver contraseña"}
               >
@@ -138,10 +139,10 @@ const CambiarContrasena = ({ onBack }) => {
               </p>
             )}
 
-            <div className="d-flex flex-row justify-content-center gap-2 mt-3" style={{ maxWidth: '400px', margin: '0 auto' }}>
+            <div className="d-flex flex-row justify-content-center gap-2 mt-3" style={{ maxWidth: '400px', margin: '0 auto', width: '100%' }}>
               <button 
                 type="submit" 
-                className="btn btn-primary flex-grow-1"
+                className="login-btn flex-grow-1 m-0"
                 disabled={loading}
               >
                 {loading ? 'Verificando...' : 'Verificar Credenciales'}
@@ -150,8 +151,7 @@ const CambiarContrasena = ({ onBack }) => {
               <button 
                 type="button"
                 onClick={onBack}
-                className="btn flex-grow-1"
-                style={{ backgroundColor: '#6c757d', color: 'white' }}
+                className="login-btn-secondary flex-grow-1 m-0"
               >
                 Volver
               </button>
@@ -159,10 +159,11 @@ const CambiarContrasena = ({ onBack }) => {
           </form>
         ) : (
           <form onSubmit={handleUpdate} autoComplete="off" className="d-flex flex-column gap-3">
-            <div className="position-relative">
+            <div className="form-group position-relative">
+              <label>Nueva Contraseña</label>
               <input 
                 type={showNuevoCe ? "text" : "password"} 
-                placeholder="Nueva Contraseña" 
+                className="login-input"
                 value={nuevoCe}
                 onChange={(e) => setNuevoCe(e.target.value)}
                 required 
@@ -171,18 +172,18 @@ const CambiarContrasena = ({ onBack }) => {
               />
               <button 
                 type="button"
-                className="btn btn-link position-absolute"
-                style={{ right: '10px', top: '50%', transform: 'translateY(-50%)', padding: 0, color: '#6c757d', border: 'none', background: 'none' }}
+                className="password-toggle"
                 onClick={() => setShowNuevoCe(!showNuevoCe)}
               >
                 {showNuevoCe ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
 
-            <div className="position-relative">
+            <div className="form-group position-relative">
+              <label>Confirmar Nueva Contraseña</label>
               <input 
                 type={showConfirmarCe ? "text" : "password"} 
-                placeholder="Confirmar Nueva Contraseña" 
+                className="login-input"
                 value={confirmarCe}
                 onChange={(e) => setConfirmarCe(e.target.value)}
                 required 
@@ -191,8 +192,7 @@ const CambiarContrasena = ({ onBack }) => {
               />
               <button 
                 type="button"
-                className="btn btn-link position-absolute"
-                style={{ right: '10px', top: '50%', transform: 'translateY(-50%)', padding: 0, color: '#6c757d', border: 'none', background: 'none' }}
+                className="password-toggle"
                 onClick={() => setShowConfirmarCe(!showConfirmarCe)}
               >
                 {showConfirmarCe ? <EyeOff size={20} /> : <Eye size={20} />}
@@ -205,10 +205,10 @@ const CambiarContrasena = ({ onBack }) => {
               </p>
             )}
 
-            <div className="d-flex flex-row justify-content-center gap-2 mt-3" style={{ maxWidth: '400px', margin: '0 auto' }}>
+            <div className="d-flex flex-row justify-content-center gap-2 mt-3" style={{ maxWidth: '400px', margin: '0 auto', width: '100%' }}>
               <button 
                 type="submit" 
-                className="btn btn-primary flex-grow-1"
+                className="login-btn flex-grow-1 m-0"
                 disabled={loading}
               >
                 {loading ? 'Actualizando...' : 'Actualizar Contraseña'}
@@ -220,8 +220,7 @@ const CambiarContrasena = ({ onBack }) => {
                   setStep(1);
                   setMensaje({text:'', type:''});
                 }}
-                className="btn flex-grow-1"
-                style={{ backgroundColor: '#6c757d', color: 'white' }}
+                className="login-btn-secondary flex-grow-1 m-0"
               >
                 Cancelar
               </button>

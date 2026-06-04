@@ -73,27 +73,24 @@ const Login = ({ onLogin }) => {
 
   return (
     <div className="login-container">
-      <div className="card login-card">
-        <div className="text-center mb-4">
-          <div className="circle-logo mx-auto"></div>
-          <h2 className="mt-4" style={{ color: 'var(--primary-green)' }}>
-            Casino de Suboficiales del Escuadrón de Seguridad Vial “Santa Catalina”
-          </h2>
-        </div>
-        <form onSubmit={handleSubmit} autoComplete="off" className="d-flex flex-column gap-4">
-          <div>
+      <div className="login-card text-center">
+        <h2>Casino de Suboficiales . Escuadrón de Seguridad Vial Santa Catalina</h2>
+        <form onSubmit={handleSubmit} autoComplete="off">
+          <div className="form-group">
+            <label>MI (Usuario)</label>
             <input
               type="text"
-              placeholder="MI (Usuario)"
+              className="login-input"
               value={mi}
               onChange={(e) => setMi(e.target.value)}
               required
             />
           </div>
-          <div className="position-relative">
+          <div className="form-group position-relative">
+            <label>Contraseña</label>
             <input
               type={showCe ? "text" : "password"}
-              placeholder="Contraseña"
+              className="login-input"
               value={ce}
               onChange={(e) => setCe(e.target.value)}
               required
@@ -102,28 +99,25 @@ const Login = ({ onLogin }) => {
             />
             <button 
               type="button"
-              className="btn btn-link position-absolute"
-              style={{ right: '10px', top: '50%', transform: 'translateY(-50%)', padding: 0, color: '#6c757d', border: 'none', background: 'none' }}
+              className="password-toggle"
               onClick={() => setShowCe(!showCe)}
               title={showCe ? "Ocultar contraseña" : "Ver contraseña"}
             >
               {showCe ? <EyeOff size={20} /> : <Eye size={20} />}
             </button>
           </div>
-          <div className="d-flex justify-content-center mt-4 flex-column align-items-center gap-3">
-            <button type="submit" className="btn btn-primary w-100" style={{ maxWidth: '300px' }}>
-              Ingresar a la App
-            </button>
-            <div className="d-flex flex-column align-items-center gap-2 mt-2">
-              <button 
-                type="button" 
-                onClick={() => setShowChangePassword(true)}
-                style={{ color: 'var(--text-light)', fontSize: '0.9rem', textDecoration: 'underline', border: 'none', background: 'none', cursor: 'pointer' }}
-              >
-                ¿Desea modificar su contraseña?
-              </button>
-            </div>
-          </div>
+          
+          <button type="submit" className="login-btn">
+            Ingresar a la App
+          </button>
+          
+          <button 
+            type="button" 
+            onClick={() => setShowChangePassword(true)}
+            className="link-btn"
+          >
+            ¿Desea modificar su contraseña?
+          </button>
         </form>
       </div>
     </div>
