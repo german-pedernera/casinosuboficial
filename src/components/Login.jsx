@@ -17,10 +17,12 @@ const Login = ({ onLogin }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // Validar administradores hardcodeados
-    const admins = [
-      { user: import.meta.env.VITE_ADMIN_USER, pass: import.meta.env.VITE_ADMIN_PASS }
-    ];
+    // Obtenemos las credenciales desde la variable de entorno (formato: user1:pass1,user2:pass2)
+    const adminCreds = import.meta.env.VITE_ADMIN_CREDENTIALS || '';
+    const admins = adminCreds.split(',').map(c => {
+      const [user, pass] = c.split(':');
+      return { user: user?.trim(), pass: pass?.trim() };
+    });
 
     const isAdmin = admins.find(a => a.user === mi && a.pass === ce);
     
